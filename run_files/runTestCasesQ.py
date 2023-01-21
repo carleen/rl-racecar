@@ -6,6 +6,8 @@ import numpy as np
 import csv
 import math as m
 
+sys.path.append('../modules')
+
 import reinforcementLearningTuned as rl
 
 # Create each of the tracks, agents
@@ -19,7 +21,7 @@ def run_Q(a, agent_label):
     num_collisions_arr = []
     
     a.initializeTables()
-    for mc_num in range(0,500):
+    for mc_num in range(0,10):
         tic = time.perf_counter()
         a.environment.chooseStart()
         sum_reward = 0
@@ -76,28 +78,28 @@ def run_Q(a, agent_label):
             print(f'Runtime: {runtime:.03f} s\n')
 
     results_df = pd.DataFrame({'mc_count': mc_count, 'overall_reward': overall_reward, 'num_timesteps': num_timesteps, 'runtime': timestep_arr, 'num_collisions': num_collisions_arr})
-    results_df.to_csv(f'./results/tuned/{agent_label}.csv')
-    a.q_table.to_csv(f'./results/tuned/{agent_label}_q-table.csv')
+    results_df.to_csv(f'../results/{agent_label}.csv')
+    a.q_table.to_csv(f'../results/{agent_label}_q-table.csv')
     
     return a
 		
-#l_track_q = rl.Environment('L-track.txt')
-#l_q = rl.QAgent('l_q', l_track_q)
-#l_q.initializeTables()
-#run_Q(l_q, 'l-map_')
+l_track_q = rl.Environment('../track_files/L-track.txt')
+l_q = rl.QAgent('l_q', l_track_q)
+l_q.initializeTables()
+run_Q(l_q, 'l-q_agent')
 
-r_track_q_a = rl.Environment('R-track.txt')
+r_track_q_a = rl.Environment('../track_files/R-track.txt')
 l_r_a = rl.QAgent('r_q_a', r_track_q_a)
 l_r_a.initializeTables()
-run_Q(l_r_a, 'r-map_a_')
+run_Q(l_r_a, 'r-q-a_agent')
 
-o_track_q = rl.Environment('O-track.txt')
+o_track_q = rl.Environment('../track_files/O-track.txt')
 o_q = rl.QAgent('o_q', o_track_q)
 o_q.initializeTables()
-run_Q(o_q, 'o-map_')
+run_Q(o_q, 'o-q_agent')
 
-r_track_q_b = rl.Environment('R-track.txt')
+r_track_q_b = rl.Environment('../track_files/R-track.txt')
 l_r_b = rl.QAgent('r_q_b', r_track_q_b)
 l_r_b.initializeTables()
-run_Q(l_r_b, 'r-map_b_')
+run_Q(l_r_b, 'r-q-b_agent')
 

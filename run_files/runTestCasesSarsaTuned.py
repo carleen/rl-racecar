@@ -6,16 +6,18 @@ import numpy as np
 import csv
 import math as m
 
+sys.path.append('../modules')
+
 import reinforcementLearningTuned as rl
 
 # Create each of the tracks, agents
-l_track_qa = rl.Environment('L-track.txt')
+l_track_qa = rl.Environment('../track_files/L-track.txt')
 l_qs = rl.SAgent('l_qs', l_track_qa)
 
-o_track_qs = rl.Environment('O-track.txt')
+o_track_qs = rl.Environment('../track_files/O-track.txt')
 o_qs = rl.SAgent('o_qs', o_track_qs)
 
-r_track_qs_a = rl.Environment('R-track.txt')
+r_track_qs_a = rl.Environment('../track_files/R-track.txt')
 r_qs_a = rl.SAgent('r_qs_a', r_track_qs_a)
 
 
@@ -94,25 +96,26 @@ def run_S(sarsa_agent, agent_label, total_mc):
             print(f'Runtime: {runtime:.03f} s\n')
         
     results_df = pd.DataFrame({'mc_count': mc_count, 'overall_reward': overall_reward, 'num_timesteps': num_timesteps, 'runtime': runtime_arr, 'num_collisions': num_collisions_arr})
-    results_df.to_csv(f'./results/tuned/{agent_label}_epsilon-5.csv')
-    sarsa_agent.q_table.to_csv(f'./results/tuned/{agent_label}_qtable.csv')
+    results_df.to_csv(f'../results/{agent_label}_epsilon-5.csv')
+    sarsa_agent.q_table.to_csv(f'../results/{agent_label}_qtable.csv')
 
     return sarsa_agent
 		
-#l_qs.initializeTables()
-#run_S(l_qs, 'l_s', mc_num)
-#
-#o_qs.initializeTables()
-#run_S(o_qs, 'o_s')
-#    
+mc_num = 10
+l_qs.initializeTables()
+run_S(l_qs, 'l_s', mc_num)
+
+o_qs.initializeTables()
+run_S(o_qs, 'o_s', mc_num)
+    
 r_qs_a.initializeTables()
-trained_s = run_S(r_qs_a, 'r_s_a', 250)
+trained_s = run_S(r_qs_a, 'r_s_a', mc_num)
 
 
-#r_track_qs_b = rl.Environment('R-track.txt', 'b')
-#r_qs_b = rl.SAgent('r_s_b', r_track_qs_b)
-#r_qs_b.initializeTables()
+r_track_qs_b = rl.Environment('../track_files/R-track.txt', 'b')
+r_qs_b = rl.SAgent('r_s_b', r_track_qs_b)
+r_qs_b.initializeTables()
 print('starting B option for R track')
 trained_s.environment.collision_procedure='b'
-run_S(trained_s, 'r_qs_b-trained', 10)
+run_S(trained_s, 'r_qs_b-trained', mc_num)
 
