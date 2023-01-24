@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import csv
 import math as m
+import pickle
 
 sys.path.append('../modules')
 
@@ -27,7 +28,6 @@ def run_S(sarsa_agent, agent_label, total_mc):
     num_timesteps=[]
     runtime_arr = []
     num_collisions_arr = []
-    
     
     for mc_num in range(0,total_mc):
         tic = time.perf_counter()
@@ -60,13 +60,11 @@ def run_S(sarsa_agent, agent_label, total_mc):
             sarsa_agent.environment.cur_x = last_valid_x
             sarsa_agent.environment.cur_y = last_valid_y
 
-            reward = sarsa_agent.environment.returnRewardValue()
-
             if sarsa_agent.environment.collision_occurred:
                 sarsa_agent.environment.resetPosition(last_valid_x, last_valid_y)
                 num_collisions+=1
-                reward = -100
 
+            reward = sarsa_agent.environment.returnRewardValue()
 
             # Complete the SARSA update equation 
             x = sarsa_agent.environment.cur_x
@@ -101,23 +99,23 @@ def run_S(sarsa_agent, agent_label, total_mc):
     results_df.to_csv(f'../results/{agent_label}_epsilon-5.csv')
     sarsa_agent.q_table.to_csv(f'../results/{agent_label}_qtable.csv')
 
+    with open(f'../trained_agents/{agent_label}.instance', 'wb') as agent_instance_file:
+        pickle.dump(sarsa_agent, agent_instance_file)
+
+
     return sarsa_agent
 		
 mc_num = 100
-#l_qs.initializeTables()
-#run_S(l_qs, 'l_s', mc_num)
-#
-#o_qs.initializeTables()
-#run_S(o_qs, 'o_s', mc_num)
-#    
+l_qs.initializeTables()
+run_S(l_qs, 'l_s', mc_num)
+
+o_qs.initializeTables()
+run_S(o_qs, 'o_s', mc_num)
+    
 r_qs_a.initializeTables()
 trained_s = run_S(r_qs_a, 'r_s_a', mc_num)
 
-
-#r_track_qs_b = rl.Environment('../track_files/R-track.txt', 'b')
-#r_qs_b = rl.SAgent('r_s_b', r_track_qs_b)
-#r_qs_b.initializeTables()
 print('starting B option for R track')
 trained_s.environment.collision_procedure='b'
-run_S(trained_s, 'r_qs_b-trained', 3)
+run_S(trained_s, 'r_qs_b-trained', mc_num)
 

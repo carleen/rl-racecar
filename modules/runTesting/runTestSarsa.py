@@ -5,20 +5,11 @@ import pandas as pd
 import numpy as np
 import csv
 import math as m
+import pickle
 
 sys.path.append('../modules')
 
 import reinforcementLearningTuned as rl
-
-# Create each of the tracks, agents
-l_track_qa = rl.Environment('../track_files/L-track.txt')
-l_qs = rl.SAgent('l_qs', l_track_qa)
-
-o_track_qs = rl.Environment('../track_files/O-track.txt')
-o_qs = rl.SAgent('o_qs', o_track_qs)
-
-r_track_qs_a = rl.Environment('../track_files/R-track.txt')
-r_qs_a = rl.SAgent('r_qs_a', r_track_qs_a)
 
 
 def run_S(sarsa_agent, agent_label, total_mc):
@@ -27,7 +18,6 @@ def run_S(sarsa_agent, agent_label, total_mc):
     num_timesteps=[]
     runtime_arr = []
     num_collisions_arr = []
-    
     
     for mc_num in range(0,total_mc):
         tic = time.perf_counter()
@@ -60,19 +50,16 @@ def run_S(sarsa_agent, agent_label, total_mc):
             sarsa_agent.environment.cur_x = last_valid_x
             sarsa_agent.environment.cur_y = last_valid_y
 
-            reward = sarsa_agent.environment.returnRewardValue()
-
             if sarsa_agent.environment.collision_occurred:
                 sarsa_agent.environment.resetPosition(last_valid_x, last_valid_y)
                 num_collisions+=1
-                reward = -100
 
+            reward = sarsa_agent.environment.returnRewardValue()
 
             # Complete the SARSA update equation 
             x = sarsa_agent.environment.cur_x
             y = sarsa_agent.environment.cur_y
             cur_state_action_vector = [x, y, a_x, a_y]
-            sarsa_agent.sarsaUpdateQTable(prev_state_action_vector, cur_state_action_vector, reward)
 
             # Record the reward for the agent
             sarsa_agent.recordReward(reward)
@@ -98,26 +85,29 @@ def run_S(sarsa_agent, agent_label, total_mc):
             print(f'Runtime: {runtime:.03f} s\n')
         
     results_df = pd.DataFrame({'mc_count': mc_count, 'overall_reward': overall_reward, 'num_timesteps': num_timesteps, 'runtime': runtime_arr, 'num_collisions': num_collisions_arr})
-    results_df.to_csv(f'../results/{agent_label}_epsilon-5.csv')
-    sarsa_agent.q_table.to_csv(f'../results/{agent_label}_qtable.csv')
+    results_df.to_csv(f'../results/test-results_{agent_label}.csv')
 
     return sarsa_agent
-		
+
+# Create the agents, tracks
 mc_num = 100
-#l_qs.initializeTables()
-#run_S(l_qs, 'l_s', mc_num)
+
+## Load agents from trained instances
+#agent_label = 'l_s'
+#with open(f'../trained_agents/{agent_label}.instance', 'rb') as agent_instance:
+#    l_q = pickle.load(agent_instance)
+#run_S(l_q, 'l-s_agent', mc_num)
 #
-#o_qs.initializeTables()
-#run_S(o_qs, 'o_s', mc_num)
-#    
-r_qs_a.initializeTables()
-trained_s = run_S(r_qs_a, 'r_s_a', mc_num)
+#agent_label = 'o_s'
+#with open(f'../trained_agents/{agent_label}.instance', 'rb') as agent_instance:
+#    l_q = pickle.load(agent_instance)
+#run_S(l_q, 'o-s_agent', mc_num)
 
+agent_label = 'r_s_a'
+with open(f'../trained_agents/{agent_label}.instance', 'rb') as agent_instance:
+    l_q = pickle.load(agent_instance)
+run_S(l_q, 'r-s-a_agent', mc_num)
 
-#r_track_qs_b = rl.Environment('../track_files/R-track.txt', 'b')
-#r_qs_b = rl.SAgent('r_s_b', r_track_qs_b)
-#r_qs_b.initializeTables()
-print('starting B option for R track')
-trained_s.environment.collision_procedure='b'
-run_S(trained_s, 'r_qs_b-trained', 3)
+l_q.environment.collision_procedure='b'
+run_S(l_q, 'r-s-b_agent', mc_num)
 
